@@ -1,0 +1,116 @@
+@startuml
+enum LossType {
+EFFICIENCY
+CLIPPING
+SELF-USE
+}
+class Loss {
+LossType lossType
+BigDecimal Kwh
+}
+
+enum EventType {
+SOLAR
+DCDC
+DCAC
+CHARGE
+DISCHARGE
+ACDC
+BUY
+SELL
+USE
+}
+
+class EnergyEvent {
+Period period
+BigDecimal kwhIn
+BigDecimal kwhOut
+Set<Loss> losses
+BigDecimal getKwhLoss()
+BigDecimal postEventSoc
+BigDecimal pricePerKwh
+EventType type
+}
+
+class EventStore {
+ArrayList<EnergyEvent> events
+void printEvents(EventType type)
+}
+EventStore "1" *-- "1" EnergyEvent
+
+class EnergyPrice {
+BigDecimal importPrice
+BigDecimal exportPrice
+}
+
+class EnergyPeriodPrice {
+Period period
+EnergyPrice price
+}
+
+interface EnergySupplier {
+ArrayList<EnergyPeriodPrice> getEnergyPrices(String postcode,Period period,String importProduct,String exportProduct)
+}
+
+class House {
+String postcode
+EnergySupplier supplier
+String importProduct
+String exportProduct
+ArrayList<EnergyPeriodPrice> getEnergyPrices(Period period)
+ArrayList<EnergyEvent> getEnergyUsage(Period period)
+ArrayList<EnergyEvent> getSolarGeneration(Period period)
+}
+House "1" *-- "1" SolarInstallation
+House "1" *-- "1" EnergySupplier
+
+class Controller {
+}
+class Period {
+ZonedDateTime startTime;
+ZonedDateTime endTime;
+}
+
+class SolarArray {
+EnergyEvent getEvent(Period period)
+}
+
+class SolarInstallation {
+EnergyEvent getEvent(Period period)
+}
+SolarInstallation "1" *-- "0..*" SolarArray
+
+
+class DcDcConverter {
+BigDecimal efficiency
+BigDecimal maxInKw
+BigDecimal maxOutKw
+EnergyEvent getEvent(Period period, BigDecimal kwhIn)
+}                    
+
+class Inverter {
+BigDecimal contAcKw
+BigDecimal peakAcKw
+EnergyEvent getEvent(Period period, BigDecimal kwhIn)
+}
+class Battery {
+BigDecimal maxChargeKw
+BigDecimal maxDischargeKw
+BigDecimal capacityKwh
+BigDecimal chargeEfficiency
+BigDecimal dischargeEfficiency
+EnergyEvent charge(Period period, BigDecimal kwhIn)
+EnergyEvent discharge(Period period, BigDecimal kwhIn)
+}
+class Rectifier {
+BigDecimal contDcKw
+BigDecimal peakDcKw
+EnergyEvent getEvent(Period period, BigDecimal kwhIn)
+}
+Controller "1" o-- "1" DcDcConverter
+Controller "1" o-- "1" Inverter
+Controller "1" o-- "1" Battery
+Controller "1" o-- "1" Rectifier
+Controller "1" o-- "1" House
+Controller --> EventStore
+@enduml

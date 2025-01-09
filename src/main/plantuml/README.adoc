@@ -1,0 +1,15 @@
+= Types of UML Relationship
+
+== generalisation
+
+A generalises B
+
+
+
+== dependency
+
+== association
+
+== aggregation
+
+== composition
